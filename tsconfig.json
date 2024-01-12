@@ -1,21 +1,21 @@
 {
   "compilerOptions": {
-    "module": "commonjs",                                /* Specify what module code is generated. */
-    "target": "es2017",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
-    "outDir": "dist",                                   /* Specify an output folder for all emitted files. */
-    "declaration": true,                              /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
-    "sourceMap": true,                                /* Create source map files for emitted JavaScript files. */
+    "module": "commonjs",                                /* Use CommonJS for compatibility with Node.js and React Native */
+    "target": "es2018",                                  /* Target modern ES2018 for compatibility with modern JS features */
+    "lib": ["esnext"],                                   /* Include ESNext library for latest JS features */
+    "declaration": true,                                 /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
+    "sourceMap": true,                                   /* Create source map files for emitted JavaScript files. */
     "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
     "strict": true,                                      /* Enable all strict type-checking options. */
     "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
-    "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
+    "outDir": "dist",                                    /* Specify an output folder for all emitted files. */
   /* Visit https://aka.ms/tsconfig to read more about this file */
 
     /* Projects */
     // "incremental": true,                              /* Save .tsbuildinfo files to allow for incremental compilation of projects. */
     // "composite": true,                                /* Enable constraints that allow a TypeScript project to be used with project references. */
     // "tsBuildInfoFile": "./.tsbuildinfo",              /* Specify the path to .tsbuildinfo incremental compilation file. */
-    // "disableSourceOfProjectReferenceRedirect": true,  /* Disable preferring source files instead of declaration files when referencing composite projects. */
+    // "disableSourceOfProjectReferenceRedirect": tru,  /* Disable preferring source files instead of declaration files when referencing composite projects. */
     // "disableSolutionSearching": true,                 /* Opt a project out of multi-project reference checking when editing. */
     // "disableReferencedProjectLoad": true,             /* Reduce the number of projects loaded automatically by TypeScript. */
 
@@ -104,8 +104,16 @@
     // "allowUnreachableCode": true,                     /* Disable error reporting for unreachable code. */
 
     /* Completeness */
+    // "skipLibCheck": true,                             /* Skip type checking all .d.ts files. */
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "include": [
+    "src",
+    ".eslint.json",
+    "jest.config.cjs"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
+  ]
 }
