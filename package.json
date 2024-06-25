@@ -16,7 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.440.0",
-    "radx-mars-lib": "bitbucket:meadowsdesign/radx-mars-lib#bug/integration-fixes"
+    "radx-mars-lib": "git+https://github.com/NIBIB/radx-mars-lib.git#main"
   },
   "devDependencies": {
     "@types/jest": "^29.5.2",
