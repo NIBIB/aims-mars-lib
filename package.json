@@ -1,27 +1,42 @@
 {
   "name": "aims-mars-lib",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MARS Library for submitting lab results to AIMS.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "private": true,
   "scripts": {
     "build": "tsc",
     "test": "jest",
     "prepublishOnly": "npm run build",
     "lint": "eslint . --ext .ts"
   },
-  "keywords": [],
-  "author": "Meadows Design, Andy Meadows",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NIBIB/aims-mars-lib"
+  },
+  "bugs": {
+    "url": "https://github.com/NIBIB/aims-mars-lib/issues"
+  },
+  "keywords": [
+    "RADx",
+    "MARS Hub",
+    "AIMS",
+    "APHL"
+  ],
+  "author": {
+    "name": "Andy Meadows",
+    "organization": "Meadows Design, LLC",
+    "url": "https://meadowsdesign.com"
+  },
+  "license": "MIT",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.440.0",
-    "radx-mars-lib": "git+https://github.com/NIBIB/radx-mars-lib.git#main"
+    "radx-mars-lib": "1.0.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.2",
-    "eslint": "^8.53.0",
     "@typescript-eslint/eslint-plugin": "^6.9.1",
+    "eslint": "^8.53.0",
     "eslint-config-standard-with-typescript": "^39.1.1",
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-n": "^16.2.0",
