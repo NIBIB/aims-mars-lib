@@ -1,8 +1,36 @@
-import { type MarsHubProvider, IsoHierarchicDesignator } from 'radx-mars-lib'
-import { uploadData } from './s3/S3Service'
+import {
+  type MarsHubProvider,
+  IsoHierarchicDesignator,
+  type TestSubmissionResult,
+  type HubSubmissionResult,
+  HubSubmissionResultStatus,
+  type HierarchicDesignator
+} from 'radx-mars-lib'
+import { uploadData, retrieveData } from './s3/S3Service'
 import FileNameGenerator from './file-service/FileNameGenerator'
 import type AimsConfig from './AimsConfig'
 
+class AimsTestSubmissionResult implements TestSubmissionResult {
+  public readonly successful: boolean
+  public readonly retryable: boolean
+  public readonly id: (string | null)
+  public readonly warnings: string[]
+  public readonly errors: string[]
+
+  constructor (
+    successful: boolean,
+    retryable: boolean,
+    id: (string | null),
+    warnings: string[] = [],
+    errors: string[] = []
+  ) {
+    this.successful = successful
+    this.retryable = retryable
+    this.id = id
+    this.warnings = warnings
+    this.errors = errors
+  }
+}
 /**
  * The AimsHubProvider is a {@link MarsHubProvider} implementation capable of
  * delivering HL7 messages to the APHL AIMS MARS compliant hub for routing
@@ -76,7 +104,7 @@ export default class AimsHubProvider implements MarsHubProvider {
       new FileNameGenerator(labIdentifier, useProduction ? 'Prod' : 'Test')
   }
 
-  get receivingApplicationIdentifier (): IsoHierarchicDesignator {
+  get receivingApplicationIdentifier (): HierarchicDesignator {
     if (this._useProduction) {
       return this._receivingApplicationProd
     }
@@ -84,12 +112,16 @@ export default class AimsHubProvider implements MarsHubProvider {
     return this._receivingApplicationStage
   }
 
-  get receivingFacilityIdentifier (): IsoHierarchicDesignator {
+  get receivingFacilityIdentifier (): HierarchicDesignator {
     return this._receivingFacility
   }
 
   get isUsingProduction (): boolean {
     return this._useProduction
+  }
+
+  private _buildIdFromComponents (uniquer: string, timestamp: string): string {
+    return `${uniquer}-${timestamp}`
   }
 
   /**
@@ -100,14 +132,69 @@ export default class AimsHubProvider implements MarsHubProvider {
    * @param hl7Message the message to send.
    * @returns a boolean value indicating successful delivery.
    */
-  async submitTest (hl7Message: string): Promise<boolean> {
-    const filename = this._fileNameGenerator.generate('random-digits')
+  async submitTest (hl7Message: string): Promise<TestSubmissionResult> {
+    const generatedFilenameComponents = this._fileNameGenerator.submission()
     try {
-      await uploadData(this._aimsConfig, filename, hl7Message)
+      const result = await uploadData(this._aimsConfig, generatedFilenameComponents.filename, hl7Message)
+      const errors = []
+      if (result.error) {
+        errors.push(result.error)
+      }
+      return new AimsTestSubmissionResult(
+        result.successful,
+        result.retryable,
+        this._buildIdFromComponents(
+          generatedFilenameComponents.uniquer,
+          generatedFilenameComponents.timestamp
+        ),
+        [],
+        errors)
+    } catch (e: any) {
+      return new AimsTestSubmissionResult(
+        false,
+        false,
+        this._buildIdFromComponents(
+          generatedFilenameComponents.uniquer,
+          generatedFilenameComponents.timestamp
+        ),
+        [],
+        [`Unexpected error: ${e.name ?? 'Unknown Error'}`])
+    }
+  }
 
-      return true
-    } catch (_) {
-      return false
+  /**
+   * Retrieves the result of the submission from the hub.  Used to determine
+   * delivery status.
+   *
+   * Overrides the base {@link MarsHubProvider.retrieveSubmissionResult}
+   * method.
+   *
+   * @param {string} submissionId The ID of the submission to retrieve.
+   * @returns {Promise<HubSubmissionResult>} The result of the submission
+   */
+  async retrieveSubmissionResult (submissionId: string): Promise<HubSubmissionResult> {
+    try {
+      const keys: string[] = submissionId.split('-')
+
+      const generatedFilename = this._fileNameGenerator.retrieval(keys[1], keys[0])
+
+      const result = await retrieveData(this._aimsConfig, generatedFilename)
+
+      return {
+        errors: result.errors,
+        warnings: result.warnings,
+        status: HubSubmissionResultStatus.processed,
+        submissionId,
+        successful: (result.errors?.length ?? 0) === 0
+      }
+    } catch (e: any) {
+      return {
+        errors: [],
+        warnings: [],
+        status: HubSubmissionResultStatus.notFound,
+        submissionId,
+        successful: false
+      }
     }
   }
 }

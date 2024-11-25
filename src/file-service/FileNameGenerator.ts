@@ -37,6 +37,32 @@ export default class FileNameGenerator {
   }
 
   /**
+   * Generates a unique identifier similar to nano-id.
+   * This function is lightweight and suitable for environments where
+   * performance and size are critical.
+   *
+   * @param length - The desired length of the generated ID. Defaults to 21.
+   * @returns A unique identifier string.
+   */
+  private _generateNanoId (length: number = 21): string {
+    const characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+    const charactersLength = characters.length
+    let result = ''
+
+    // Use an array to build the ID for better performance
+    const resultArray = new Array(length)
+    for (let i = 0; i < length; i++) {
+      // Math.random() generates a number in the range of [0, 1)
+      const randomIndex = Math.floor(Math.random() * charactersLength)
+      resultArray[i] = characters[randomIndex]
+    }
+
+    // Join the array into a string
+    result = resultArray.join('')
+    return result
+  }
+
+  /**
    * Generates a filename compliant to the filename guidelines documented by
    * APHL AIMS.
    * @param senderOriginalFilename The original name of the file.  This can be
@@ -45,18 +71,19 @@ export default class FileNameGenerator {
    * filename.
    * @returns A string with a unique APHL AIMS compliant filename.
    */
-  generate (senderOriginalFilename: string): string {
-    let filename = senderOriginalFilename
-    const fileExtension = filename.split('.').pop()
-
-    if (fileExtension === filename) {
-      filename += '.hl7'
-    } else if (fileExtension !== 'hl7') {
-      throw new Error('Invalid Sender Original Filename. It should end with ".hl7".')
-    }
-
+  submission (): { filename: string, timestamp: string, uniquer: string } {
+    const uniquer = this._generateNanoId(21)
     const timestamp = this._getTimestamp()
+    return {
+      // eslint-disable-next-line max-len
+      filename: `InterPartner~CentralizedELRNIHOTC~${this.labIdentifier}~AIMSPlatform~${this.environment}~${this.environment}~${timestamp}~STOP~${uniquer}.hl7`,
+      uniquer,
+      timestamp
+    }
+  }
+
+  retrieval (timestamp: string, uniquer: string): string {
     // eslint-disable-next-line max-len
-    return `InterPartner~CentralizedELRNIHOTC~${this.labIdentifier}~AIMSPlatform~${this.environment}~${this.environment}~${timestamp}~STOP~${filename}`
+    return `InterPartner~NIHOTCWarningandErrorReport~AIMSPlatform~${this.labIdentifier}~${this.environment}~${this.environment}~${timestamp}~STOP~${uniquer}.csv`
   }
 }
